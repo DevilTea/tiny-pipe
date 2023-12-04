@@ -1,0 +1,7 @@
+{
+	"extends": "@deviltea/tsconfig/node",
+	"include": [
+		"./build.config.ts",
+		"./eslint.config.js"
+	]
+}

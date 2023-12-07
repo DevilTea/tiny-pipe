@@ -3,7 +3,7 @@
 	"type": "module",
 	"version": "0.0.1",
 	"packageManager": "pnpm@8.11.0",
-	"description": "_description_",
+	"description": "A tiny pipe function builder with tiny size and type-safe.",
 	"author": "DevilTea <ch870814@gmail.com>",
 	"license": "MIT",
 	"homepage": "https://github.com/DevilTea/tiny-pipe#readme",
@@ -75,5 +75,8 @@
 	},
 	"lint-staged": {
 		"*": "eslint --fix"
+	},
+	"publishConfig": {
+		"access": "public"
 	}
 }

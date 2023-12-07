@@ -3,10 +3,9 @@
 [![npm version][npm-version-src]][npm-version-href]
 [![npm downloads][npm-downloads-src]][npm-downloads-href]
 [![bundle][bundle-src]][bundle-href]
-<!-- [![JSDocs][jsdocs-src]][jsdocs-href] -->
 [![License][license-src]][license-href]
 
-A tiny pipe function builder with tiny size and type-safe.
+A pipe function builder with tiny size and type-safe.
 
 ## Install
 
@@ -99,5 +98,3 @@ const myFn = createPipe()
 [bundle-href]: https://bundlephobia.com/result?p=@deviltea/tiny-pipe
 [license-src]: https://img.shields.io/github/license/DevilTea/tiny-pipe.svg?style=flat&colorA=080f12&colorB=1fa669
 [license-href]: https://github.com/DevilTea/tiny-pipe/blob/main/LICENSE
-[jsdocs-src]: https://img.shields.io/badge/jsdocs-reference-080f12?style=flat&colorA=080f12&colorB=1fa669
-[jsdocs-href]: https://www.jsdocs.io/package/@deviltea/tiny-pipe

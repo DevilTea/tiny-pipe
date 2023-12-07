@@ -1,7 +1,7 @@
 {
 	"name": "@deviltea/tiny-pipe",
 	"type": "module",
-	"version": "0.0.0",
+	"version": "0.0.1",
 	"packageManager": "pnpm@8.11.0",
 	"description": "_description_",
 	"author": "DevilTea <ch870814@gmail.com>",

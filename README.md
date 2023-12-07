@@ -79,7 +79,7 @@ const myFn = createPipe()
 			console.log(safeData.result /* :number */)
 
 		else if (safeData.status === 'rejected') // type narrowing
-			console.log(safeData.error /* :Error */)
+			console.log(safeData.reason /* :Error */)
 	})
 	.getExecutable()
 ```

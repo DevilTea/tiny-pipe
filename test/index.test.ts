@@ -1,4 +1,4 @@
-import { assertType, describe, expect, expectTypeOf, it, vi } from 'vitest'
+import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { createPipe, createPipeWith } from '../src/index'
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))

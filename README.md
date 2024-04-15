@@ -27,7 +27,7 @@ const minusOne = (x: number) => x - 1
 const squareAndMinusOne = createPipe()
 	.pipe(square)
 	.pipe(minusOne)
-	.getExecutable()
+	.execute
 
 // Or directly execute the function
 createPipe()
@@ -58,7 +58,7 @@ const myFn = createPipe()
 	.pipe((x /* : number */) => Promise.resolve(x + 1))
 	.pipe(async (x /* : number */) => x * 2)
 	.pipe((x /* : number */) => x - 1)
-	.getExecutable()
+	.execute
 ```
 
 ### Error handling
@@ -80,7 +80,7 @@ const myFn = createPipe()
 		else if (safeData.status === 'rejected') // type narrowing
 			console.log(safeData.reason /* :Error */)
 	})
-	.getExecutable()
+	.execute
 ```
 
 ## License

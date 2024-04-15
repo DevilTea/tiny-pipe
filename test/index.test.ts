@@ -30,7 +30,7 @@ describe('sync pipe', () => {
 			.pipe(handlers[2]!)
 			.pipe(handlers[3]!)
 			.pipe(handlers[4]!)
-			.getExecutable()
+			.execute
 
 		expect(theFn(0)).toBe(15)
 		handlers.forEach(
@@ -127,7 +127,7 @@ describe('async pipe', () => {
 			.pipe(handlers[2]!)
 			.pipe(handlers[3]!)
 			.pipe(handlers[4]!)
-			.getExecutable()
+			.execute
 
 		expect(await theFn(0)).toBe(15)
 		handlers.forEach(
@@ -231,7 +231,7 @@ describe('mixed pipe', () => {
 
 				return Promise.resolve(0)
 			})
-			.getExecutable()
+			.execute
 
 		expectTypeOf(theFn()).toEqualTypeOf<Promise<number> | number>()
 	})

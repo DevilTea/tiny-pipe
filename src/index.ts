@@ -103,19 +103,23 @@ class PipeBuilder<
 	}
 
 	/**
-	 * Get the executable function of the pipe
+	 * The executable function of the pipe
 	 */
-	getExecutable() {
-		type FnReturnedValue = HasAsync extends true ? Promise<AwaitedReturnType<Last>> : ReturnType<Last>
-		return (...params: Parameters<First>): FnReturnedValue => [...this._fnList]
-			.reduce((v, f) => f(v), params[0])
-	}
+	get execute() {
+		type Fn = (...params: Parameters<First>) => HasAsync extends true
+			? Promise<AwaitedReturnType<Last>>
+			: ReturnType<Last>
 
-	/**
-	 * Execute the pipe
-	 */
-	execute(...params: Parameters<First>) {
-		return this.getExecutable()(...params)
+		return ((...params: any) => {
+			let result: any
+			for (let i = 0; i < this._fnList.length; i++) {
+				const fn = this._fnList[i]!
+				result = i === 0
+					? fn(...params)
+					: fn(result)
+			}
+			return result
+		}) as Fn
 	}
 }
 

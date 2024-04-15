@@ -87,7 +87,6 @@ const myFn = createPipe()
 
 [MIT](./LICENSE) License © 2023-PRESENT [DevilTea](https://github.com/DevilTea)
 
-
 <!-- Badges -->
 
 [npm-version-src]: https://img.shields.io/npm/v/@deviltea/tiny-pipe?style=flat&colorA=080f12&colorB=1fa669

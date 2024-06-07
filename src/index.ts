@@ -1,138 +1,72 @@
-type AnyFn = (...params: any[]) => any
-type MaybePromise<T = any> = T | Promise<T>
-type AwaitedReturnType<Fn extends AnyFn> = Awaited<ReturnType<Fn>>
-type IsAsyncFn<Fn extends AnyFn> = ReturnType<Fn> extends infer T
-	? (T extends Promise<any> ? true : false)
-	: never
-type IfTrue<T extends boolean, Then, Else> = T extends true ? Then : Else
-type IfFalse<T extends boolean, Then, Else> = T extends false ? Then : Else
-type ConditionalType<Condition extends boolean, True, False, _Boolean> = IfTrue<
-	Condition,
-	True,
-	IfFalse<
-		Condition,
-		False,
-		_Boolean
-	>
->
-type IsNever<T> = [T] extends [never] ? true : false
+type AnyFn = (...args: any[]) => any
+type SafeReturnType<Fn extends AnyFn> =
+	| { status: 'success', value: ReturnType<Fn> }
+	| { status: 'error', reason: any }
+type ToSafeFn<Fn extends AnyFn> = (...args: Parameters<Fn>) => SafeReturnType<Fn>
+type ToAwaitedFn<Fn extends AnyFn> = (...args: Parameters<Fn>) => Promise<Awaited<ReturnType<Fn>>>
 
-type SafeWrappedData<Result, Reason> = { status: 'resolved', result: Result } | { status: 'rejected', reason: Reason }
-type ToSafePipeHandler<
-	Fn extends AnyFn,
-	Reason = unknown,
-	ReturnData extends SafeWrappedData<AwaitedReturnType<Fn>, Reason> = SafeWrappedData<AwaitedReturnType<Fn>, Reason>,
-> = (...params: Parameters<Fn>) => ConditionalType<
-	IsAsyncFn<Fn>,
-	Promise<ReturnData>,
-	ReturnData,
-	MaybePromise<ReturnData>
+type Pipe<
+	FirstFn extends AnyFn,
+	LastFn extends AnyFn,
+> = Omit<
+	{
+		pipe: <Fn extends (...args: [ReturnType<LastFn>]) => any>(fn: Fn) => Pipe<FirstFn, Fn>
+		pipeSafely: <Fn extends (...args: [ReturnType<LastFn>]) => any>(fn: Fn) => Pipe<FirstFn, ToSafeFn<Fn>>
+		pipeAwaited: <Fn extends (...args: [Awaited<ReturnType<LastFn>>]) => any>(fn: Fn) => Pipe<FirstFn, ToAwaitedFn<Fn>>
+		pipeAwaitedSafely: <Fn extends (...args: [Awaited<ReturnType<LastFn>>]) => any>(fn: Fn) => Pipe<FirstFn, ToAwaitedFn<ToSafeFn<Fn>>>
+		exec: (...args: Parameters<FirstFn>) => ReturnType<LastFn>
+	},
+	| ((ReturnType<LastFn> extends Promise<any> ? true : false) extends false ? 'pipeAwaited' | 'pipeAwaitedSafely' : never)
 >
 
-type PipeHandlerParams<Last extends PipeHandler> = IfTrue<
-	IsNever<Last>,
-	[any?],
-	IfTrue<
-		IsNever<AwaitedReturnType<Last>>,
-		[void],
-		[AwaitedReturnType<Last>]
-	>
->
-type PipeHandler<Last extends PipeHandler = never> = (...params: PipeHandlerParams<Last>) => any
-type ReturnedPipeBuilder<
-	First extends PipeHandler,
-	HasAsync extends boolean,
-	Fn extends AnyFn,
-> = PipeBuilder<
-	IsNever<First> extends true ? Fn : First,
-	Fn,
-	HasAsync extends true ? true : IsAsyncFn<Fn>
->
+function pipe<M extends keyof Omit<Pipe<AnyFn, AnyFn>, 'exec'>>(method: M, fn: AnyFn, last: (M extends 'pipe' | 'pipeSafely' ? undefined : never) | AnyFn): Pipe<AnyFn, AnyFn> {
+	const exec = (() => {
+		if (method === 'pipe')
+			return last == null ? fn : (x: any) => fn(last(x))
 
-class PipeBuilder<
-	First extends PipeHandler = never,
-	Last extends PipeHandler = never,
-	HasAsync extends boolean = false,
-> {
-	private _fnList: AnyFn[] = []
+		if (method === 'pipeSafely') {
+			return last == null
+				? fn
+				: (x: any) => {
+						try {
+							const result = fn(last(x))
+							return { status: 'success', value: result }
+						}
+						catch (reason) {
+							return { status: 'error', reason }
+						}
+					}
+		}
 
-	private static _createSafePipeData(status: 'resolved' | 'rejected', data: any) {
-		return status === 'resolved'
-			? { status, result: data }
-			: { status, reason: data }
-	}
+		if (method === 'pipeAwaited')
+			return async (x: any) => fn(await last!(x))
 
-	private static _invokeHandler<Last extends PipeHandler, Handler extends PipeHandler<Last>>(handler: Handler, promiseOrValue: any) {
-		return promiseOrValue instanceof Promise
-			? promiseOrValue.then(value => handler(value))
-			: handler(promiseOrValue)
-	}
-
-	/**
-	 * Add a handler to the pipe
-	 */
-	pipe<Handler extends PipeHandler<Last>>(handler: Handler) {
-		this._fnList.push((promiseOrValue: any) => {
-			return PipeBuilder._invokeHandler(handler, promiseOrValue)
-		})
-
-		type ReturnedBuilder = ReturnedPipeBuilder<First, HasAsync, Handler>
-		return this as ReturnedBuilder
-	}
-
-	/**
-	 * Add a handler to the pipe, and handle the error automatically
-	 */
-	pipeSafe<Reason, Handler extends PipeHandler<Last> = PipeHandler<Last>>(handler: Handler) {
-		this._fnList.push((promiseOrValue: any) => {
-			try {
-				const unsafeResult = PipeBuilder._invokeHandler(handler, promiseOrValue)
-				return unsafeResult instanceof Promise
-					? unsafeResult
-						.then(result => PipeBuilder._createSafePipeData('resolved', result))
-						.catch(reason => PipeBuilder._createSafePipeData('rejected', reason))
-					: PipeBuilder._createSafePipeData('resolved', unsafeResult)
+		if (method === 'pipeAwaitedSafely') {
+			return async (x: any) => {
+				try {
+					const result = await last!(x)
+					return { status: 'success', value: await fn(result) }
+				}
+				catch (reason) {
+					return { status: 'error', reason }
+				}
 			}
-			catch (reason) {
-				return PipeBuilder._createSafePipeData('rejected', reason)
-			}
-		})
+		}
 
-		type ReturnedBuilder = ReturnedPipeBuilder<First, HasAsync, ToSafePipeHandler<Handler, Reason>>
-		return this as ReturnedBuilder
-	}
-
-	/**
-	 * The executable function of the pipe
-	 */
-	get execute() {
-		type Fn = (...params: Parameters<First>) => HasAsync extends true
-			? Promise<AwaitedReturnType<Last>>
-			: ReturnType<Last>
-
-		return ((...params: any) => {
-			let result: any
-			for (let i = 0; i < this._fnList.length; i++) {
-				const fn = this._fnList[i]!
-				result = i === 0
-					? fn(...params)
-					: fn(result)
-			}
-			return result
-		}) as Fn
+		throw new Error('Invalid method')
+	})() as AnyFn
+	return {
+		pipe: (fn: AnyFn) => pipe('pipe', fn, exec),
+		pipeSafely: (fn: AnyFn) => pipe('pipeSafely', fn, exec),
+		pipeAwaited: (fn: AnyFn) => pipe('pipeAwaited', fn, exec),
+		pipeAwaitedSafely: (fn: AnyFn) => pipe('pipeAwaitedSafely', fn, exec),
+		exec,
 	}
 }
 
-/**
- * Start to create a pipe
- */
 export function createPipe() {
-	return new PipeBuilder()
-}
-
-/**
- * Start to create a pipe with a value
- */
-export function createPipeWith<T>(value: T) {
-	return createPipe().pipe(() => value)
+	return {
+		pipe: <Fn extends AnyFn>(fn: Fn): Pipe<Fn, Fn> => pipe('pipe', fn, undefined),
+		pipeSafely: <Fn extends AnyFn>(fn: Fn): Pipe<Fn, Fn> => pipe('pipeSafely', fn, undefined),
+	} satisfies Pick<Pipe<AnyFn, AnyFn>, 'pipe' | 'pipeSafely'>
 }

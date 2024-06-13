@@ -1,5 +1,5 @@
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
-import { createPipe, createPipeWith } from '../src/index'
+import { createPipe } from '../src/index'
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
@@ -42,10 +42,8 @@ describe('sync pipe', () => {
 		const handlers = Array.from({ length: 5 }, (_, i) => vi.fn((value: number) => value + (i + 1)))
 		expect(() => {
 			createPipe()
-				.pipe((_: number) => {
+				.pipe((_: number): number => {
 					throw new Error('error')
-					// @ts-expect-error for type correctness
-					return 0
 				})
 				.pipe(handlers[0]!)
 				.pipe(handlers[1]!)
@@ -61,42 +59,30 @@ describe('sync pipe', () => {
 
 	it('should handle error automatically', () => {
 		createPipe()
-			.pipeSafe(() => {
+			.pipeSafely(() => {
 				throw new Error('error')
 				// @ts-expect-error for type correctness
 				return 0
 			})
 			.pipe((data) => {
-				expect(data.status).toBe('rejected')
-				if (data.status === 'rejected') {
+				expect(data.status).toBe('error')
+				if (data.status === 'error') {
 					expect(data.reason).toBeInstanceOf(Error)
-					expectTypeOf(data).not.toHaveProperty('result')
+					expectTypeOf(data).not.toHaveProperty('value')
 				}
 			})
-			.pipeSafe(() => {
+			.pipeSafely(() => {
 				return 0
 			})
 			.pipe((data) => {
-				expect(data.status).toBe('resolved')
-				if (data.status === 'resolved') {
-					expect(data.result).toBe(0)
-					expectTypeOf(data.result).toBeNumber()
+				expect(data.status).toBe('success')
+				if (data.status === 'success') {
+					expect(data.value).toBe(0)
+					expectTypeOf(data.value).toBeNumber()
 					expectTypeOf(data).not.toHaveProperty('reason')
 				}
 			})
 			.execute()
-	})
-
-	it('should pass a value to next handler', () => {
-		const result = createPipeWith(0)
-			.pipe((value) => {
-				expect(value).toBe(0)
-				expectTypeOf(value).toBeNumber()
-				return value + 1
-			})
-			.execute()
-
-		expect(result).toBe(1)
 	})
 })
 
@@ -106,10 +92,10 @@ describe('async pipe', () => {
 
 		const result = await createPipe()
 			.pipe(handlers[0]!)
-			.pipe(handlers[1]!)
-			.pipe(handlers[2]!)
-			.pipe(handlers[3]!)
-			.pipe(handlers[4]!)
+			.pipeAwaited(handlers[1]!)
+			.pipeAwaited(handlers[2]!)
+			.pipeAwaited(handlers[3]!)
+			.pipeAwaited(handlers[4]!)
 			.execute(0)
 
 		expect(result).toBe(15)
@@ -123,10 +109,10 @@ describe('async pipe', () => {
 
 		const theFn = createPipe()
 			.pipe(handlers[0]!)
-			.pipe(handlers[1]!)
-			.pipe(handlers[2]!)
-			.pipe(handlers[3]!)
-			.pipe(handlers[4]!)
+			.pipeAwaited(handlers[1]!)
+			.pipeAwaited(handlers[2]!)
+			.pipeAwaited(handlers[3]!)
+			.pipeAwaited(handlers[4]!)
 			.execute
 
 		expect(await theFn(0)).toBe(15)
@@ -144,11 +130,11 @@ describe('async pipe', () => {
 					// @ts-expect-error for type correctness
 					return 0
 				})
-				.pipe(handlers[0]!)
-				.pipe(handlers[1]!)
-				.pipe(handlers[2]!)
-				.pipe(handlers[3]!)
-				.pipe(handlers[4]!)
+				.pipeAwaited(handlers[0]!)
+				.pipeAwaited(handlers[1]!)
+				.pipeAwaited(handlers[2]!)
+				.pipeAwaited(handlers[3]!)
+				.pipeAwaited(handlers[4]!)
 				.execute(0)
 		}).rejects.toThrowError()
 		handlers.forEach(
@@ -156,7 +142,7 @@ describe('async pipe', () => {
 		)
 	})
 
-	it('should execute async handlers in order and pass resolved value to next handler', async () => {
+	it('should execute async handlers in order and pass success value to next handler', async () => {
 		let order = 0
 		await createPipe()
 			.pipe(async () => {
@@ -164,13 +150,13 @@ describe('async pipe', () => {
 				expect(order++).toBe(0)
 				return 0
 			})
-			.pipe(async (value) => {
+			.pipeAwaited(async (value) => {
 				expectTypeOf(value).toBeNumber()
 				await delay(300)
 				expect(order++).toBe(1)
 				return 0
 			})
-			.pipe(async (value) => {
+			.pipeAwaited(async (value) => {
 				expectTypeOf(value).toBeNumber()
 				await delay(100)
 				expect(order++).toBe(2)
@@ -181,44 +167,32 @@ describe('async pipe', () => {
 
 	it('should handle error automatically', async () => {
 		await createPipe()
-			.pipeSafe(async () => {
+			.pipeAwaitedSafely(async () => {
 				await delay(500)
 				throw new Error('error')
 				// @ts-expect-error for type correctness
 				return 0
 			})
-			.pipe((data) => {
-				expect(data.status).toBe('rejected')
-				if (data.status === 'rejected') {
+			.pipeAwaitedSafely((data) => {
+				expect(data.status).toBe('error')
+				if (data.status === 'error') {
 					expect(data.reason).toBeInstanceOf(Error)
-					expectTypeOf(data).not.toHaveProperty('result')
+					expectTypeOf(data).not.toHaveProperty('value')
 				}
 			})
-			.pipeSafe(async () => {
+			.pipeAwaitedSafely(async () => {
 				await delay(300)
 				return 0
 			})
-			.pipe((data) => {
-				expect(data.status).toBe('resolved')
-				if (data.status === 'resolved') {
-					expect(data.result).toBe(0)
-					expectTypeOf(data.result).toBeNumber()
+			.pipeAwaitedSafely((data) => {
+				expect(data.status).toBe('success')
+				if (data.status === 'success') {
+					expect(data.value).toBe(0)
+					expectTypeOf(data.value).toBeNumber()
 					expectTypeOf(data).not.toHaveProperty('reason')
 				}
 			})
 			.execute()
-	})
-
-	it('should pass a value to next handler', async () => {
-		const result = await createPipeWith(Promise.resolve(0))
-			.pipe((value) => {
-				expect(value).toBe(0)
-				expectTypeOf(value).toBeNumber()
-				return value + 1
-			})
-			.execute()
-
-		expect(result).toBe(1)
 	})
 })
 

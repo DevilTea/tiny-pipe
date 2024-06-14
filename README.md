@@ -55,9 +55,9 @@ createPipe()
 // so you can pipe any async or sync functions together freely.
 
 const myFn = createPipe()
-	.pipe((x /* : number */) => Promise.resolve(x + 1))
-	.pipe(async (x /* : number */) => x * 2)
-	.pipe((x /* : number */) => x - 1)
+	.pipe((x /* number */) => Promise.resolve(x + 1))
+	.pipe(async (x /* number */) => x * 2)
+	.pipe((x /* number */) => x - 1)
 	.execute
 ```
 
@@ -72,13 +72,13 @@ function getNumberOrThrow() {
 }
 
 const myFn = createPipe()
-	.pipeSafe(getNumberOrThrow) // If the handler may throw an error, you can use `pipeSafe` to wrap it.
+	.pipeSafely(getNumberOrThrow) // If the handler may throw an error, you can use `pipeSafely` to wrap it.
 	.pipe((safeData) => { // It will wrap the result or error into an object. Do not destruct it to let type narrowing work.
-		if (safeData.status === 'resolved') // type narrowing
-			console.log(safeData.result /* :number */)
+		if (safeData.status === 'success') // type narrowing
+			console.log(safeData.value /* number */)
 
-		else if (safeData.status === 'rejected') // type narrowing
-			console.log(safeData.reason /* :Error */)
+		else if (safeData.status === 'error') // type narrowing
+			console.log(safeData.reason /* Error */)
 	})
 	.execute
 ```

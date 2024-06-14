@@ -92,10 +92,10 @@ describe('async pipe', () => {
 
 		const result = await createPipe()
 			.pipe(handlers[0]!)
-			.pipeAwaited(handlers[1]!)
-			.pipeAwaited(handlers[2]!)
-			.pipeAwaited(handlers[3]!)
-			.pipeAwaited(handlers[4]!)
+			.pipe(handlers[1]!)
+			.pipe(handlers[2]!)
+			.pipe(handlers[3]!)
+			.pipe(handlers[4]!)
 			.execute(0)
 
 		expect(result).toBe(15)
@@ -109,10 +109,10 @@ describe('async pipe', () => {
 
 		const theFn = createPipe()
 			.pipe(handlers[0]!)
-			.pipeAwaited(handlers[1]!)
-			.pipeAwaited(handlers[2]!)
-			.pipeAwaited(handlers[3]!)
-			.pipeAwaited(handlers[4]!)
+			.pipe(handlers[1]!)
+			.pipe(handlers[2]!)
+			.pipe(handlers[3]!)
+			.pipe(handlers[4]!)
 			.execute
 
 		expect(await theFn(0)).toBe(15)
@@ -130,11 +130,11 @@ describe('async pipe', () => {
 					// @ts-expect-error for type correctness
 					return 0
 				})
-				.pipeAwaited(handlers[0]!)
-				.pipeAwaited(handlers[1]!)
-				.pipeAwaited(handlers[2]!)
-				.pipeAwaited(handlers[3]!)
-				.pipeAwaited(handlers[4]!)
+				.pipe(handlers[0]!)
+				.pipe(handlers[1]!)
+				.pipe(handlers[2]!)
+				.pipe(handlers[3]!)
+				.pipe(handlers[4]!)
 				.execute(0)
 		}).rejects.toThrowError()
 		handlers.forEach(
@@ -150,13 +150,13 @@ describe('async pipe', () => {
 				expect(order++).toBe(0)
 				return 0
 			})
-			.pipeAwaited(async (value) => {
+			.pipe(async (value) => {
 				expectTypeOf(value).toBeNumber()
 				await delay(300)
 				expect(order++).toBe(1)
 				return 0
 			})
-			.pipeAwaited(async (value) => {
+			.pipe(async (value) => {
 				expectTypeOf(value).toBeNumber()
 				await delay(100)
 				expect(order++).toBe(2)
@@ -167,24 +167,24 @@ describe('async pipe', () => {
 
 	it('should handle error automatically', async () => {
 		await createPipe()
-			.pipeAwaitedSafely(async () => {
+			.pipeSafely(async () => {
 				await delay(500)
 				throw new Error('error')
 				// @ts-expect-error for type correctness
 				return 0
 			})
-			.pipeAwaitedSafely((data) => {
+			.pipeSafely((data) => {
 				expect(data.status).toBe('error')
 				if (data.status === 'error') {
 					expect(data.reason).toBeInstanceOf(Error)
 					expectTypeOf(data).not.toHaveProperty('value')
 				}
 			})
-			.pipeAwaitedSafely(async () => {
+			.pipeSafely(async () => {
 				await delay(300)
 				return 0
 			})
-			.pipeAwaitedSafely((data) => {
+			.pipeSafely((data) => {
 				expect(data.status).toBe('success')
 				if (data.status === 'success') {
 					expect(data.value).toBe(0)

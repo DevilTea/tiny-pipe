@@ -7,81 +7,93 @@
 
 A pipe function builder with tiny size and type-safe.
 
-## Install
+## Overview
 
-```sh
+**Tiny Pipe** is a lightweight, type-safe pipe function builder. It allows you to create a sequence of operations, either synchronously or asynchronously, with safe error handling capabilities.
+
+- **Lightweight**: Built with performance and minimal footprint in mind.
+- **Type-safe**: Ensures correct types throughout the pipe's execution.
+- **Error handling**: Built-in mechanisms for safely managing errors during pipeline execution.
+
+## Features
+
+- **Sync and Async Pipelines**: Support both synchronous and asynchronous function chains.
+- **Safe Execution**: Use `pipeSafely` to automatically handle errors within the pipeline.
+- **Tiny Size**: Optimized for minimal overhead while providing robust functionality.
+
+## Installation
+
+Install the package using `pnpm`:
+
+```bash
+pnpm add @deviltea/tiny-pipe
+```
+
+Or with `npm`:
+
+```bash
 npm install @deviltea/tiny-pipe
 ```
 
 ## Usage
 
-### Basic
+### Synchronous Pipeline
+
 ```ts
 import { createPipe } from '@deviltea/tiny-pipe'
 
-const square = (x: number) => x * x
-const minusOne = (x: number) => x - 1
+const result = createPipe()
+	.pipe((value: number) => value + 1)
+	.pipe((value: number) => value * 2)
+	.execute(5)
 
-// You may create a new executable function
-// typeof squareAndMinusOne === (x: number) => number
-const squareAndMinusOne = createPipe()
-	.pipe(square)
-	.pipe(minusOne)
-	.execute
-
-// Or directly execute the function
-createPipe()
-	.pipe(square)
-	.pipe(minusOne)
-	.execute(3) // 8
-
-// The pipe function is type-safe
-createPipe()
-	.pipe(square)
-	.pipe(minusOne)
-	.execute('3') // Argument type error!
-
-createPipe()
-	.pipe(square)
-	.pipe((v: string) => v) // Handler's parameter type error!
-	.pipe(minusOne)
-	.execute(3)
+console.log(result) // Output: 12
 ```
 
-### Async
-```ts
-// During the execution, each handler of pipe
-// will wait for the previous handler to finish,
-// so you can pipe any async or sync functions together freely.
+### Asynchronous Pipeline
 
-const myFn = createPipe()
-	.pipe((x /* number */) => Promise.resolve(x + 1))
-	.pipe(async (x /* number */) => x * 2)
-	.pipe((x /* number */) => x - 1)
-	.execute
+```ts
+import { createPipe } from '@deviltea/tiny-pipe'
+
+const result = await createPipe()
+	.pipe(async (value: number) => value + 1)
+	.pipe(async (value: number) => value * 2)
+	.execute(5)
+
+console.log(result) // Output: 12
 ```
 
-### Error handling
+### Error Handling
+
 ```ts
-function getNumberOrThrow() {
-	const n = Math.random()
-	if (n < 0.5)
+import { createPipe } from '@deviltea/tiny-pipe'
+
+createPipe()
+	.pipeSafely(() => {
 		throw new Error('Oops!')
-
-	return n
-}
-
-const myFn = createPipe()
-	.pipeSafely(getNumberOrThrow) // If the handler may throw an error, you can use `pipeSafely` to wrap it.
-	.pipe((safeData) => { // It will wrap the result or error into an object. Do not destruct it to let type narrowing work.
-		if (safeData.status === 'success') // type narrowing
-			console.log(safeData.value /* number */)
-
-		else if (safeData.status === 'error') // type narrowing
-			console.log(safeData.reason /* Error */)
 	})
-	.execute
+	.pipe((result) => {
+		if (result.status === 'error') {
+			console.error(result.reason)
+		}
+		else {
+			console.log(result.value)
+		}
+	})
+	.execute()
 ```
+
+## Development
+
+### Scripts
+- `pnpm build`: Build the library.
+- `pnpm dev`: Start development mode.
+- `pnpm lint`: Lint the code.
+- `pnpm test`: Run the test suite with Vitest.
+
+## Contributing
+
+Feel free to open an issue or submit a pull request if you find any bugs or have suggestions for improvements.
 
 ## License
 

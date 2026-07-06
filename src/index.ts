@@ -1,7 +1,7 @@
 type AnyFn = (...args: any[]) => any
-type ToSafelyResult<Value> =
-	| { status: 'success', value: Value }
-	| { status: 'error', reason: any }
+type ToSafelyResult<Value>
+	= | { status: 'success', value: Value }
+		| { status: 'error', reason: any }
 type ToSafelyFn<Fn extends AnyFn> = (...args: Parameters<Fn>) => ToSafelyResult<ReturnType<Fn>>
 type ToAwaitedFn<Fn extends AnyFn> = (...args: Parameters<Fn>) => Promise<Awaited<ReturnType<Fn>>>
 type ToAwaitedSafelyFn<Fn extends AnyFn> = (...args: Parameters<Fn>) => Promise<ToSafelyResult<Awaited<ReturnType<Fn>>>>

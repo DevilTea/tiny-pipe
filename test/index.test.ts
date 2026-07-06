@@ -15,9 +15,11 @@ describe('sync pipe', () => {
 			.pipe(handlers[4]!)
 			.execute(0)
 
-		expect(result).toBe(15)
+		expect(result)
+			.toBe(15)
 		handlers.forEach(
-			handler => expect(handler).toBeCalledTimes(1),
+			handler => expect(handler)
+				.toBeCalledTimes(1),
 		)
 	})
 
@@ -32,9 +34,11 @@ describe('sync pipe', () => {
 			.pipe(handlers[4]!)
 			.execute
 
-		expect(theFn(0)).toBe(15)
+		expect(theFn(0))
+			.toBe(15)
 		handlers.forEach(
-			handler => expect(handler).toBeCalledTimes(1),
+			handler => expect(handler)
+				.toBeCalledTimes(1),
 		)
 	})
 
@@ -51,7 +55,8 @@ describe('sync pipe', () => {
 				.pipe(handlers[3]!)
 				.pipe(handlers[4]!)
 				.execute(0)
-		}).toThrowError()
+		})
+			.toThrowError()
 		handlers.forEach(
 			handler => expect(handler).not.toBeCalled(),
 		)
@@ -65,9 +70,11 @@ describe('sync pipe', () => {
 				return 0
 			})
 			.pipe((data) => {
-				expect(data.status).toBe('error')
+				expect(data.status)
+					.toBe('error')
 				if (data.status === 'error') {
-					expect(data.reason).toBeInstanceOf(Error)
+					expect(data.reason)
+						.toBeInstanceOf(Error)
 					expectTypeOf(data).not.toHaveProperty('value')
 				}
 			})
@@ -75,10 +82,13 @@ describe('sync pipe', () => {
 				return 0
 			})
 			.pipe((data) => {
-				expect(data.status).toBe('success')
+				expect(data.status)
+					.toBe('success')
 				if (data.status === 'success') {
-					expect(data.value).toBe(0)
-					expectTypeOf(data.value).toBeNumber()
+					expect(data.value)
+						.toBe(0)
+					expectTypeOf(data.value)
+						.toBeNumber()
 					expectTypeOf(data).not.toHaveProperty('reason')
 				}
 			})
@@ -98,9 +108,11 @@ describe('async pipe', () => {
 			.pipe(handlers[4]!)
 			.execute(0)
 
-		expect(result).toBe(15)
+		expect(result)
+			.toBe(15)
 		handlers.forEach(
-			handler => expect(handler).toBeCalledTimes(1),
+			handler => expect(handler)
+				.toBeCalledTimes(1),
 		)
 	})
 
@@ -115,9 +127,11 @@ describe('async pipe', () => {
 			.pipe(handlers[4]!)
 			.execute
 
-		expect(await theFn(0)).toBe(15)
+		expect(await theFn(0))
+			.toBe(15)
 		handlers.forEach(
-			handler => expect(handler).toBeCalledTimes(1),
+			handler => expect(handler)
+				.toBeCalledTimes(1),
 		)
 	})
 
@@ -147,19 +161,24 @@ describe('async pipe', () => {
 		await createPipe()
 			.pipe(async () => {
 				await delay(500)
-				expect(order++).toBe(0)
+				expect(order++)
+					.toBe(0)
 				return 0
 			})
 			.pipe(async (value) => {
-				expectTypeOf(value).toBeNumber()
+				expectTypeOf(value)
+					.toBeNumber()
 				await delay(300)
-				expect(order++).toBe(1)
+				expect(order++)
+					.toBe(1)
 				return 0
 			})
 			.pipe(async (value) => {
-				expectTypeOf(value).toBeNumber()
+				expectTypeOf(value)
+					.toBeNumber()
 				await delay(100)
-				expect(order++).toBe(2)
+				expect(order++)
+					.toBe(2)
 				return 0
 			})
 			.execute()
@@ -174,9 +193,11 @@ describe('async pipe', () => {
 				return 0
 			})
 			.pipeSafely((data) => {
-				expect(data.status).toBe('error')
+				expect(data.status)
+					.toBe('error')
 				if (data.status === 'error') {
-					expect(data.reason).toBeInstanceOf(Error)
+					expect(data.reason)
+						.toBeInstanceOf(Error)
 					expectTypeOf(data).not.toHaveProperty('value')
 				}
 			})
@@ -185,10 +206,13 @@ describe('async pipe', () => {
 				return 0
 			})
 			.pipeSafely((data) => {
-				expect(data.status).toBe('success')
+				expect(data.status)
+					.toBe('success')
 				if (data.status === 'success') {
-					expect(data.value).toBe(0)
-					expectTypeOf(data.value).toBeNumber()
+					expect(data.value)
+						.toBe(0)
+					expectTypeOf(data.value)
+						.toBeNumber()
 					expectTypeOf(data).not.toHaveProperty('reason')
 				}
 			})
@@ -207,6 +231,7 @@ describe('mixed pipe', () => {
 			})
 			.execute
 
-		expectTypeOf(theFn()).toEqualTypeOf<Promise<number> | number>()
+		expectTypeOf(theFn())
+			.toEqualTypeOf<Promise<number> | number>()
 	})
 })

@@ -57,8 +57,8 @@
 	},
 	"devDependencies": {
 		"@antfu/ni": "30.2.0",
-		"@deviltea/eslint-config": "7.0.0",
-		"@deviltea/tsconfig": "0.0.9",
+		"@deviltea/eslint-config": "8.0.2",
+		"@deviltea/tsconfig": "0.0.10",
 		"@types/node": "24.13.2",
 		"@vitest/coverage-v8": "4.1.9",
 		"bumpp": "11.1.0",
